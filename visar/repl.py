@@ -1,3 +1,4 @@
+import threading
 import traceback
 from dataclasses import dataclass
 from typing import Any, Callable, Iterator
@@ -23,9 +24,10 @@ def print_exc(exc: BaseException, frames: int = 0) -> None:
     traceback.print_exception(type(exc), exc, tb, limit=-frames)
 
 
+type Defer = Callable[[Namespace], Any]
 type Parser[T] = Callable[[str], T]
 type Executor[T] = Callable[[T, Namespace], None]
-type Init = Callable[[Namespace], None]
+type Init = Callable[[Namespace], None | Defer]
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
@@ -48,11 +50,17 @@ def _parse[T](src: str, modules: list[Module]) -> tuple[T, Module[T]]:
     raise syn_exc
 
 
-def main(modules: list[Module], input_: Callable[[], str]) -> None:
+def main(modules: list[Module], input_: Callable[[], str], defer: Defer) -> None:
     ns = Namespace()
+    deferred = [defer]
 
     for module in modules:
-        module.init(ns)
+        res = module.init(ns)
+        if res is not None:
+            deferred.append(res)
+
+    defer_done = threading.Event()
+    threading.Thread(target=lambda: ([d(ns) for d in deferred], defer_done.set())).start()
 
     while True:
         try:
@@ -64,6 +72,9 @@ def main(modules: list[Module], input_: Callable[[], str]) -> None:
         # Skip blank inputs
         if not line.strip():
             continue
+
+        # Wait for all deferred tasks to finish
+        defer_done.wait()
 
         # Find a module that can parse the input
         try:

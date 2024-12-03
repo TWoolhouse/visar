@@ -16,7 +16,6 @@ def _resolve_node(branch: Branch, value: Any, done: set[int]) -> Iterator[Seg]:
         return
 
     gate, children = branch
-    # print(gate, value, children)
     try:
         new = gate(value)
     except Exception:  # noqa: S112
