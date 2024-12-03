@@ -6,6 +6,8 @@ from .repl import Module, Namespace
 from .vis import ar as visar
 
 IDENT_QUERY = "q"
+IDENTS_PINT_UREG = ["ureg", "unit", "u"]
+IDENTS_PINT_QUANTITY = ["Q_", "Q"]
 
 
 def init_query(ns: Namespace) -> None:
@@ -14,6 +16,22 @@ def init_query(ns: Namespace) -> None:
     from pathlib import Path
 
     ns.globals["Path"] = Path
+
+
+def init_pint(ns: Namespace) -> None:
+    import pint
+
+    ureg = pint.UnitRegistry(cache_folder=":auto:")
+    ureg.formatter.default_format = "~#P"
+    for ident in IDENTS_PINT_UREG:
+        ns.globals[ident] = ureg
+    for ident in IDENTS_PINT_QUANTITY:
+        ns.globals[ident] = ureg.Quantity
+
+
+def init_ns(ns: Namespace) -> None:
+    init_query(ns)
+    init_pint(ns)
 
 
 def show(value: Any, ns: Namespace) -> None:
@@ -38,11 +56,12 @@ def stmt_executor(tree: ast.Interactive, code: CodeType, ns: Namespace) -> None:
 
 
 mod_expr = Module(
-    init=init_query,
+    init=lambda ns: init_ns,
     parser=lambda src: compile(src.lstrip(), "<input>", "eval"),
     executor=lambda code, ns: show(eval(code, *ns), ns),  # noqa: S307
 )
 mod_stmt = Module(
+    # init is inheritted
     parser=stmt_parser,
     executor=lambda data, ns: stmt_executor(*data, ns),
 )
