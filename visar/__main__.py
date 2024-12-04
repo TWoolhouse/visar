@@ -18,6 +18,7 @@ def load_modules(_ns: visar.repl.Namespace) -> None:
         visar.mod.error,
         visar.mod.num_word,
         visar.mod.pint,
+        visar.mod.chemistry,
     ]:
         visar.vis.enable(m)
 

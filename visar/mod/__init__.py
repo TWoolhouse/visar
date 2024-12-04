@@ -1,5 +1,6 @@
 from .base import enable as base
 from .c_types import enable as c_types
+from .chemistry import enable as chemistry
 from .default import enable as default
 from .error import enable as error
 from .num_word import enable as num_word
@@ -10,6 +11,7 @@ from .unicode import enable as unicode
 
 __all__ = [
     "base",
+    "chemistry",
     "c_types",
     "default",
     "error",
