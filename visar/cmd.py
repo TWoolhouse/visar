@@ -1,24 +1,12 @@
 import argparse
-import functools
 import os
 import shlex
 from pprint import pp
 from typing import Callable, NoReturn
 
 from . import py as mod_py
+from .memoize import memoize
 from .repl import Module, Namespace
-
-
-def memoize[**P, R](func: Callable[P, R]) -> Callable[P, R]:
-    @functools.wraps(func)
-    def memoize_wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-        try:
-            return func.__memoize__
-        except AttributeError:
-            res = func.__memoize__ = func(*args, **kwargs)
-            return res
-
-    return memoize_wrapper
 
 
 class ArgumentParser(argparse.ArgumentParser):
