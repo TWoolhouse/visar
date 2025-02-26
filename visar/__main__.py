@@ -23,12 +23,17 @@ def load_modules(_ns: visar.repl.Namespace) -> None:
         visar.vis.enable(m)
 
 
-visar.repl.main(
-    [
-        visar.cmd.mod_cmd,
-        visar.py.mod_expr,
-        visar.py.mod_stmt,
-    ],
-    lambda: input(">>> "),
-    load_modules,
-)
+def main() -> None:
+    visar.repl.main(
+        [
+            visar.cmd.mod_cmd,
+            visar.py.mod_expr,
+            visar.py.mod_stmt,
+        ],
+        lambda: input(">>> "),
+        load_modules,
+    )
+
+
+if __name__ == "__main__":
+    main()

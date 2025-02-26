@@ -1,9 +1,10 @@
 [project]
 name = "visar"
 version = "0.1.0"
-dependencies = [
-    "pint>=0.24.4",
-]
+dependencies = ["pint>=0.24.4"]
 description = ""
 authors = [{ name = "Thomas Woolhouse", email = "thomas.woolhouse@imgtec.com" }]
 requires-python = ">=3.12"
+
+[project.script]
+visar = "visar.__main__:main"
