@@ -40,7 +40,7 @@ tees = (
 
 
 under_100_above_19 = {
-    (ten_value + unit_value): (f"{ten_name}{"-" if unit_value else ""}{unit_name}")
+    (ten_value + unit_value): (f"{ten_name}{'-' if unit_value else ''}{unit_name}")
     for ten_value, ten_name in tees
     for unit_value, unit_name in unit.items()
 }
@@ -56,21 +56,44 @@ under_1_000_above_100 = {
 
 under_1000 = {**under_100, **under_1_000_above_100}
 
-factors = ["thousand", "million", "billion", "trillion", "quadrillion", "quintillion"]
+factors = [
+    "thousand",
+    "million",
+    "billion",
+    "trillion",
+    "quadrillion",
+    "quintillion",
+    "sextillion",
+    "septillion",
+    "octillion",
+    "nonillion",
+    "decillion",
+    "undecillion",
+    "duodecillion",
+    "tredecillion",
+    "quattuordecillion",
+    "quindecillion",
+    "sexdecillion",
+    "septendecillion",
+    "octodecillion",
+    "novemdecillion",
+    "vigintillion",
+]
 
 
-@functools.lru_cache
 def whole_number(value: int) -> str:
     big, small = divmod(value, 1000)
 
     buffer = []
     for factor in factors:
-        if not big:
+        if big == 0:
             break
-        l = big % 1000
-        if l:
-            buffer.append(f"{under_1000[l]} {factor}")
+        seg = big % 1000
+        if seg:
+            buffer.append(f"{under_1000[seg]} {factor}")
         big //= 1000
+    else:
+        buffer.append(f"{big} and")
 
     top = " ".join(reversed(buffer))
 
@@ -81,7 +104,7 @@ def whole_number(value: int) -> str:
 
     bot = under_1000[small]
     if top:
-        return f"{top}{" " if "and" in bot else " and "}{bot}"
+        return f"{top}{' ' if 'and' in bot else ' and '}{bot}"
     return bot
 
 
