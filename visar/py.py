@@ -6,7 +6,7 @@ from .repl import Module, Namespace
 from .vis import ar as visar
 
 IDENT_QUERY = "q"
-IDENTS_PINT_UREG = ["ureg", "unit", "u"]
+IDENTS_PINT_UREG = ["ureg", "unit", "u", "pint"]
 IDENTS_PINT_QUANTITY = ["Q_", "Q"]
 
 
