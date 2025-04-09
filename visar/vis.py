@@ -1,4 +1,4 @@
-from typing import Callable
+from collections.abc import Callable
 
 from .ar import Ar, Gate, Graph, Node, Printer, Segment, g_always, g_instance, n_into, p_identity
 

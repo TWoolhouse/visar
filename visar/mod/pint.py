@@ -8,15 +8,16 @@ def g_mag(v: pint.Quantity) -> float:
 
 
 def p_given(u: pint.Quantity) -> Segment:
-    return "quantity", f"{u:D}"
+    return "quantity", u, f"{u:D}"
 
 
 def p_dimensions(u: pint.Unit) -> Segment:
-    return "dim", f"{u.dimensionality}"
+    return "dim", u.dimensionality
 
 
 def p_unit_si(u: pint.Unit) -> Segment:
-    return "SI", f"{(1 * u).to_base_units().units:D}"
+    units = (1 * u).to_base_units().units
+    return "SI", units, f"{units:D}"
 
 
 def g_unit(v: pint.Quantity) -> pint.Unit:

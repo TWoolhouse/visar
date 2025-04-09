@@ -1,6 +1,5 @@
 import contextlib
 import datetime
-
 import zoneinfo
 
 from ..ar import Ar, Segment, g_instance, n_into
@@ -23,8 +22,8 @@ def g_timedelta(v: int) -> datetime.timedelta:
 def p_time_delta(delta: datetime.timedelta) -> Segment:
     sec = delta.total_seconds()
     if sec >= 0:
-        return "time", f"+{delta}"
-    return "time", f"-{datetime.timedelta(seconds=abs(sec))}"
+        return "time", delta, f"+{delta}"
+    return "time", delta, f"-{datetime.timedelta(seconds=abs(sec))}"
 
 
 def p_time_from_now(delta: datetime.timedelta) -> Segment:

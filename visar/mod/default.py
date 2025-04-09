@@ -1,3 +1,5 @@
+from collections.abc import Iterable, Iterator
+from fractions import Fraction
 from typing import Any, cast
 
 from ..ar import Ar, Segment, g_always, g_instance, n_into, p_identity
@@ -7,7 +9,7 @@ from ..ar import Ar, Segment, g_always, g_instance, n_into, p_identity
 
 def p_type(value: Any) -> Segment:
     t = type(value)
-    return "type", f"{t.__module__}.{t.__qualname__}"
+    return "type", t, f"{t.__module__}.{t.__qualname__}"
 
 
 # --- str
@@ -60,13 +62,29 @@ def g_fractional(v: float) -> float:
 
 def p_fraction(v: float) -> Segment:
     nu, de = v.as_integer_ratio()
-    return "Frac", f"{nu}/{de}"
+    return "Frac", Fraction(nu, de), f"{nu}/{de}"
 
 
 def g_int(v: float) -> int:
     if v.is_integer():
         return int(v)
     raise ValueError
+
+
+# --- iterables
+
+
+def g_iterable(v: Any) -> Iterable:
+    if isinstance(v, Iterable) and not isinstance(v, Iterator):
+        return v
+    raise ValueError
+
+
+def p_iterable_len(v: Iterable) -> Segment:
+    return "len", sum(1 for _ in v)
+
+
+# --- enable
 
 
 def enable(visar: Ar) -> None:
@@ -95,6 +113,11 @@ def enable(visar: Ar) -> None:
         (g_chr, [n_into(lambda x: float(ord(cast(str, x))), visar[float])]),
     )
 
+    visar.register(
+        Iterable,
+        (g_iterable, [p_iterable_len]),
+    )
+
     visar.inject(
         str,
         n_into(float, visar[float]),
@@ -103,5 +126,5 @@ def enable(visar: Ar) -> None:
 
     visar.register(
         visar.special.convert,
-        (g_always, [n_into(float, visar[float]), n_into(str, visar[str])]),
+        (g_always, [visar[Iterable], n_into(float, visar[float]), n_into(str, visar[str])]),
     ).inject(visar.special.any).at_tail()

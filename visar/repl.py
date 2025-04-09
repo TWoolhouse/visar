@@ -1,13 +1,41 @@
+import itertools
 import threading
 import traceback
+from collections.abc import Callable, Iterator, MutableMapping
 from dataclasses import dataclass
-from typing import Any, Callable, Iterator
+from typing import Any
 
 
 class Namespace:
+    class Frozen(MutableMapping[str, Any]):
+        def __init__(self) -> None:
+            self.immutable = {}
+            self.mutable = {}
+
+        def __getitem__(self, key: str) -> Any:
+            try:
+                return self.mutable[key]
+            except KeyError as exc:
+                return self.immutable[key]
+
+        def __setitem__(self, key: str, value: Any) -> None:
+            self.mutable[key] = value
+
+        def __contains__(self, key: object) -> bool:
+            return key in self.mutable or key in self.immutable
+
+        def __delitem__(self, key: str) -> None:
+            del self.mutable[key]
+
+        def __iter__(self) -> Iterator[str]:
+            return itertools.chain(self.mutable, self.immutable)
+
+        def __len__(self) -> int:
+            return len(self.mutable) + len(self.immutable)
+
     def __init__(self) -> None:
         self.globals = {}
-        self.locals = {}
+        self.locals = self.Frozen()
 
     def __iter__(self) -> Iterator[dict[str, Any]]:
         return iter((self.globals, self.locals))

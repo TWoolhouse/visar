@@ -2,20 +2,32 @@ import ast
 from types import CodeType
 from typing import Any
 
+from .ar import Query
 from .repl import Module, Namespace
 from .vis import ar as visar
 
 IDENT_QUERY = "q"
+IDENT_QUERIES = "qs"
 IDENTS_PINT_UREG = ["ureg", "unit", "u", "pint"]
 IDENTS_PINT_QUANTITY = ["Q_", "Q"]
 
+queries: list[Query] = []
+query_objs: dict[int, Query] = {}
+
 
 def init_query(ns: Namespace) -> None:
-    ns.globals[IDENT_QUERY] = visar.resolve(None)
+    query_from_object(None, ns)
+    ns.locals.immutable[IDENT_QUERIES] = queries
 
-    from pathlib import Path
-
-    ns.globals["Path"] = Path
+    exec(  # noqa: S102
+        r"""
+from pathlib import Path
+import itertools
+import math
+""",
+        ns.globals,
+        ns.locals.immutable,
+    )
 
 
 def init_pint(ns: Namespace) -> None:
@@ -34,12 +46,25 @@ def init_ns(ns: Namespace) -> None:
     init_pint(ns)
 
 
+def query_from_object(obj: Any, ns: Namespace) -> Query:
+    if (query := query_objs.get(id(obj))) is not None:
+        ns.locals.immutable[IDENT_QUERY] = query
+        return query
+
+    query = visar.resolve(obj)
+    query._update({IDENT_QUERIES: (len(queries), None)})
+
+    queries.append(query)
+    query_objs[id(query)] = query
+
+    ns.locals.immutable[IDENT_QUERIES] = queries
+    ns.locals.immutable[IDENT_QUERY] = query
+
+    return query
+
+
 def show(value: Any, ns: Namespace) -> None:
-    query = ns.globals[IDENT_QUERY]
-    if value is not query:
-        query = visar.resolve(value)
-        ns.globals[IDENT_QUERY] = query
-    return visar.show(query)
+    return visar.show(query_from_object(value, ns))
 
 
 def stmt_parser(src: str) -> tuple[ast.Interactive, CodeType]:
@@ -56,7 +81,7 @@ def stmt_executor(tree: ast.Interactive, code: CodeType, ns: Namespace) -> None:
 
 
 mod_expr = Module(
-    init=lambda ns: init_ns,
+    init=lambda _ns: init_ns,  # async loading
     parser=lambda src: compile(src.lstrip(), "<input>", "eval"),
     executor=lambda code, ns: show(eval(code, *ns), ns),  # noqa: S307
 )

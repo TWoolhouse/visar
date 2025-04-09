@@ -61,7 +61,7 @@ def g_element_from_symbol(symbol: str) -> Element:
 
 
 def p_element(e: Element) -> Segment:
-    return "element", f"{e.symbol}({e.atomic_number}) {e.name} ≈ {e.standard_weight}u"
+    return "element", e, f"{e.symbol}({e.atomic_number}) {e.name} ≈ {e.standard_weight}u"
 
 
 def enable(visar: Ar) -> None:

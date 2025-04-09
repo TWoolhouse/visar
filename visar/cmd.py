@@ -1,8 +1,9 @@
 import argparse
 import os
 import shlex
+from collections.abc import Callable
 from pprint import pp
-from typing import Callable, NoReturn
+from typing import NoReturn
 
 from . import py as mod_py
 from .memoize import memoize
@@ -25,10 +26,10 @@ def set_main(parser: argparse.ArgumentParser, func: Main) -> None:
 
 
 def main_introspection_namespace(args: argparse.Namespace, ns: Namespace) -> None:
-    pp(ns.locals, width=180, sort_dicts=True, underscore_numbers=True)
+    pp(ns.locals.immutable if args.globals else ns.locals.mutable, width=180, sort_dicts=True, underscore_numbers=True)
     if args.clear:
-        print(f"Destroying {len(ns.locals)} entries")
-        ns.locals.clear()
+        print(f"Destroying {len(ns.locals.mutable)} entries")
+        ns.locals.mutable.clear()
 
 
 def main_stringify(args: argparse.Namespace, ns: Namespace) -> None:
@@ -59,7 +60,10 @@ def cli() -> ArgumentParser:
         exit_on_error=False,
     )
     parser_introspection_ns.add_argument(
-        "-c", "--clear", action="store_true", default=False, help="Destroy the namespace after displaying it."
+        "-c", "--clear", action="store_true", default=False, help="Destroy the local namespace after displaying it."
+    )
+    parser_introspection_ns.add_argument(
+        "-g", "--globals", action="store_true", default=False, help="Display the global scope."
     )
     set_main(parser_introspection_ns, main_introspection_namespace)
 

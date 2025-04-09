@@ -22,14 +22,16 @@ def p_int_byte_size(value: int) -> Segment:
 
 def p_log2(value: float) -> Segment:
     try:
-        return "log2", f"{math.log2(value):.3f}"
+        log = math.log2(value)
+        return "log2", f"{log:.3f}"
     except ValueError:
         return "log2", float("nan")
 
 
 def p_log10(value: float) -> Segment:
     try:
-        return "log10", f"{math.log10(value):.3f}"
+        log = math.log10(value)
+        return "log10", log, f"{log:.3f}"
     except ValueError:
         return "log10", float("nan")
 

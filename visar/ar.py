@@ -1,7 +1,8 @@
-from typing import Any, Callable, Iterator, Reversible, Self, Sequence
+from collections.abc import Callable, Iterator, Reversible, Sequence
+from typing import Any, Self
 
-type Seg[T] = tuple[str, T]
-type Segment[T] = Seg[T] | None
+type Seg[T] = tuple[str, T, str | None]
+type Segment[T] = Seg[T] | tuple[str, T] | None
 type Gate[From, Into] = Callable[[From], Into]
 type Printer[T] = Callable[[T], Segment]
 
@@ -26,8 +27,13 @@ def _resolve_node(branch: Branch, value: Any, done: set[int]) -> Iterator[Seg]:
             yield from _resolve_node(child, new, done)
         else:
             seg = child(new)
-            if seg is not None:
-                yield seg
+            match seg:
+                case None:
+                    continue
+                case (key, value, output):
+                    yield (key, value, output)
+                case (key, value):
+                    yield (key, value, None)
 
 
 def resolve_graph[T](graph: Graph[T], value: T) -> Iterator[Seg]:
@@ -79,23 +85,28 @@ class Query:
 
     def __init__(self, graph: Graph, value: Any) -> None:
         self.__value = value
-        self.__segments: dict[str, Any] = dict(resolve_graph(graph, value))
+        self.__segments: dict[str, tuple[Any, str | None]] = {
+            key: (value, output) for key, value, output in resolve_graph(graph, value)
+        }
 
     def _show(self) -> None:
         length = max(len(k) for k in self.__segments)
 
-        for key, value in self.__segments.items():
-            print(f"{key:>{length}} {value}")
+        for key, (value, output) in self.__segments.items():
+            print(f"{key:>{length}} {value if output is None else output}")
         print()
+
+    def _update(self, other: dict[str, tuple[Any, str | None]]) -> None:
+        self.__segments.update({k: (v, str(v) if o is None else o) for k, (v, o) in other.items()})
 
     def __repr__(self) -> str:
         return f"{self.__class__.__qualname__}({self.__value})"
 
     def __getitem__(self, key: str) -> Any:
         try:
-            return self.__segments[key]
+            return self.__segments[key][0]
         except KeyError:
-            return self.__segments[self.__aliases[key]]
+            return self.__segments[self.__aliases[key]][0]
 
     def __getattr__(self, name: str) -> Any:
         return self.__getitem__(name)

@@ -1,5 +1,3 @@
-import functools
-
 from ..ar import Ar, Segment
 
 unit = {
@@ -121,7 +119,7 @@ def number_into_words(value: float) -> str:
 
 
 def p_words(value: float) -> Segment:
-    return "number", number_into_words(value)
+    return "number", value, number_into_words(value)
 
 
 def enable(visar: Ar) -> None:
